@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Dashboard - FreelanceHub</title>
+    <link rel="stylesheet" href="/client-styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">FreelanceHub</div>
+            <div class="user-info">
+                <div class="avatar">JD</div>
+                <div>
+                    <div style="font-weight: 600;">John Doe</div>
+                    <div style="font-size: 14px; color: #666;">Client</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">12</div>
+                <div class="stat-label">Active Jobs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">48</div>
+                <div class="stat-label">Applications</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Active Contracts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">$2,450</div>
+                <div class="stat-label">Total Spent</div>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="showTab(event, 'post-job')">Post Job</button>
+            <button class="tab-btn" onclick="showTab(event, 'manage-jobs')">Manage Jobs</button>
+            <button class="tab-btn" onclick="showTab(event, 'applications')">Applications</button>
+            <button class="tab-btn" onclick="showTab(event, 'messages')">Messages</button>
+            <button class="tab-btn" onclick="showTab(event, 'contracts')">Contracts</button>
+        </div>
+
+        <div id="post-job" class="tab-content active">
+            <div class="card">
+                <h3>Post a New Job</h3>
+                <form class="job-form" onsubmit="postJob(event)">
+                    <div class="form-group">
+                        <label for="job-title">Job Title</label>
+                        <input type="text" id="job-title" placeholder="e.g., Design a modern website" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="job-category">Category</label>
+                        <select id="job-category" required>
+                            <option value="">Select Category</option>
+                            <option value="web-development">Web Development</option>
+                            <option value="graphic-design">Graphic Design</option>
+                            <option value="content-writing">Content Writing</option>
+                            <option value="digital-marketing">Digital Marketing</option>
+                            <option value="mobile-app">Mobile App Development</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="job-description">Job Description</label>
+                        <textarea id="job-description" placeholder="Describe your project requirements..." required></textarea>
+                    </div>
+                    
+                    <div class="dashboard-grid">
+                        <div class="form-group">
+                            <label for="job-budget">Budget ($)</label>
+                            <input type="number" id="job-budget" placeholder="500" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="job-deadline">Deadline</label>
+                            <input type="date" id="job-deadline" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="job-skills">Required Skills (comma separated)</label>
+                        <input type="text" id="job-skills" placeholder="HTML, CSS, JavaScript, React">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Post Job</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="manage-jobs" class="tab-content">
+            <div class="card">
+                <h3>Your Posted Jobs</h3>
+                <div class="job-list" id="job-list">
+                    </div>
+            </div>
+        </div>
+
+        <div id="applications" class="tab-content">
+            <div class="card">
+                <h3>Freelancer Applications</h3>
+                <div id="applications-list">
+                    </div>
+            </div>
+        </div>
+
+        <div id="messages" class="tab-content">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Conversations</h3>
+                    <div id="conversations-list">
+                        <div class="freelancer-item" onclick="openChat('sarah-wilson')">
+                            <div class="freelancer-info">
+                                <div class="freelancer-avatar">SW</div>
+                                <div class="freelancer-details">
+                                    <h4>Sarah Wilson</h4>
+                                    <p style="font-size: 14px; color: #666;">Web Developer</p>
+                                </div>
+                            </div>
+                            <div style="font-size: 12px; color: #666;">2 min ago</div>
+                        </div>
+                        <div class="freelancer-item" onclick="openChat('mike-johnson')">
+                            <div class="freelancer-info">
+                                <div class="freelancer-avatar">MJ</div>
+                                <div class="freelancer-details">
+                                    <h4>Mike Johnson</h4>
+                                    <p style="font-size: 14px; color: #666;">Graphic Designer</p>
+                                </div>
+                            </div>
+                            <div style="font-size: 12px; color: #666;">1 hour ago</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Chat with <span id="current-chat">Sarah Wilson</span></h3>
+                    <div class="message-section" id="message-section">
+                        <div class="message received">
+                            <div>Hi! I'm interested in your web development project. I have 5 years of experience with React and Node.js.</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">2:30 PM</div>
+                        </div>
+                        <div class="message sent">
+                            <div>That sounds great! Can you share some examples of your previous work?</div>
+                            <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 5px;">2:45 PM</div>
+                        </div>
+                        <div class="message received">
+                            <div>Absolutely! I've attached my portfolio. I've worked on similar e-commerce projects before.</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">3:00 PM</div>
+                        </div>
+                    </div>
+                    <div class="message-input">
+                        <input type="text" placeholder="Type your message..." id="message-input">
+                        <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="contracts" class="tab-content">
+            <div class="card">
+                <h3>Active Contracts</h3>
+                <div class="contracts-grid" id="contracts-list">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/client-script.js"></script>
+</body>
+</html>

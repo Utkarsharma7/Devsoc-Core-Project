@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreelanceHub - Connect. Create. Succeed.</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="background"></div>
+    
+    <header>
+        <nav>
+            <a href="#" class="logo">FreelanceHub</a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#about">About</a>
+            </div>
+            <div class="auth-buttons">
+                <a href="#" class="btn btn-secondary" onclick="openModal('loginModal')">Login</a>
+                <a href="#" class="btn btn-primary" onclick="openModal('signupModal')">Sign Up</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>Connect. Create. Succeed.</h1>
+            <p>The premier freelance marketplace designed for students and small businesses. Find the perfect freelancer for your project or showcase your skills to clients worldwide.</p>
+            <div class="hero-buttons">
+                <button class="btn btn-primary btn-large" onclick="openModal('signupModal')">Start Freelancing</button>
+                <button class="btn btn-secondary btn-large" onclick="openModal('signupModal')">Hire Talent</button>
+            </div>
+        </section>
+
+        <section class="stats">
+            <div class="stat-card">
+                <span class="stat-number">10K+</span>
+                <div class="stat-label">Active Users</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">5K+</span>
+                <div class="stat-label">Projects Completed</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">95%</span>
+                <div class="stat-label">Success Rate</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">24/7</span>
+                <div class="stat-label">Support Available</div>
+            </div>
+        </section>
+
+        <section class="features" id="features">
+            <h2>Why Choose FreelanceHub?</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">👨‍💼</span>
+                    <h3>Multi-Role Platform</h3>
+                    <p>Whether you're a client posting jobs, a freelancer seeking work, or an admin managing the platform, we've got dedicated dashboards for everyone.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔒</span>
+                    <h3>Secure & Protected</h3>
+                    <p>Advanced JWT authentication, encrypted passwords, and role-based access control ensure your data and transactions are always safe.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">💳</span>
+                    <h3>Smart Payment System</h3>
+                    <p>Secure escrow-style payments that protect both clients and freelancers. Funds are only released upon successful project completion.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">⭐</span>
+                    <h3>Rating & Reviews</h3>
+                    <p>Build your reputation with our comprehensive rating system. Both clients and freelancers can rate each other after project completion.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📊</span>
+                    <h3>Project Management</h3>
+                    <p>Track your projects from start to finish with our intuitive status tracking system. Stay organized and meet your deadlines.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🛡️</span>
+                    <h3>Admin Moderation</h3>
+                    <p>Professional moderation and dispute resolution ensure a safe, fair marketplace for everyone in the community.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 FreelanceHub. All rights reserved. | Built for students and small businesses worldwide.</p>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('loginModal')">&times;</span>
+            <h2>Welcome Back!</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+            </form>
+            <div class="form-switch">
+                Don't have an account? <a href="#" onclick="switchModal('loginModal', 'signupModal')">Sign up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('signupModal')">&times;</span>
+            <h2>Join FreelanceHub</h2>
+            <form id="signupForm">
+                <div class="form-group">
+                    <label for="signupName">Full Name</label>
+                    <input type="text" id="signupName" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="userRole">My Role</label>
+                    <select id="userRole" style="width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px;">
+                        <option value="client">Client</option>
+                        <option value="freelancer">Freelancer</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Create Account</button>
+            </form>
+            <div class="form-switch">
+                Already have an account? <a href="#" onclick="switchModal('signupModal', 'loginModal')">Login</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</body>
+</html>
