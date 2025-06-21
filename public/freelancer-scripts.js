@@ -12,6 +12,7 @@ let currentJobId = null;
 
 // Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function() {
+    loadUserInfo();
     loadDashboardStats();
     loadJobs();
     loadApplications();
@@ -37,10 +38,50 @@ function setupEventListeners() {
     });
 }
 
+// Load user information
+async function loadUserInfo() {
+    try {
+        const response = await fetch('/app/user/profile', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                updateUserDisplay(data.user);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading user info:', error);
+    }
+}
+
+// Update user display
+function updateUserDisplay(user) {
+    const userNameElement = document.getElementById('user-name');
+    const userAvatarElement = document.getElementById('user-avatar');
+    const userRoleElement = document.getElementById('user-role');
+    
+    if (userNameElement) {
+        userNameElement.textContent = user.name;
+    }
+    
+    if (userAvatarElement) {
+        // Create initials from user name
+        const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        userAvatarElement.textContent = initials;
+    }
+    
+    if (userRoleElement) {
+        userRoleElement.textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+    }
+}
+
 // Load dashboard statistics
 async function loadDashboardStats() {
     try {
-        const response = await fetch('/api/freelancer/stats', {
+        const response = await fetch('/app/freelancer/stats', {
             method: 'GET',
             credentials: 'include'
         });
@@ -143,7 +184,7 @@ async function loadJobs() {
         // Show loading state
         jobsList.innerHTML = '<p>Loading jobs...</p>';
         
-        const response = await fetch('/api/jobs/all', {
+        const response = await fetch('/app/jobs/all', {
             method: 'GET',
             credentials: 'include'
         });
@@ -216,7 +257,7 @@ async function loadApplications() {
     const applicationsList = document.getElementById('applicationsList');
     
     try {
-        const response = await fetch('/api/applications/freelancer', {
+        const response = await fetch('/app/applications/freelancer', {
             method: 'GET',
             credentials: 'include'
         });
@@ -346,7 +387,7 @@ async function submitApplication(event) {
             estimatedTime: document.getElementById('estimatedTime').value
         };
         
-        const response = await fetch('/api/applications', {
+        const response = await fetch('/app/applications', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

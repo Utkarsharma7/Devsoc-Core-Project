@@ -1,4 +1,3 @@
-
 let adminData = {
     stats: {},
     users: [],
@@ -13,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function checkAdminAuth() {
     try {
-        const response = await fetch('/api/admin/stats', {
+        const response = await fetch('/app/admin/stats', {
             method: 'GET',
             credentials: 'include'
         });
@@ -50,7 +49,7 @@ document.getElementById('adminLoginForm').addEventListener('submit', async funct
     const password = document.getElementById('password').value;
     
     try {
-        const response = await fetch('/api/admin/login', {
+        const response = await fetch('/app/admin/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -86,22 +85,20 @@ async function loadDashboardData() {
 // Load statistics
 async function loadStats() {
     try {
-        const response = await fetch('/api/admin/stats', {
+        const response = await fetch('/app/admin/stats', {
             method: 'GET',
             credentials: 'include'
         });
         
         if (response.ok) {
             const data = await response.json();
-            adminData.stats = data.stats;
-            adminData.recentUsers = data.recentUsers;
-            adminData.recentJobs = data.recentJobs;
-            
-            updateStatsDisplay();
-            updateRecentActivity();
+            if (data.success) {
+                updateStats(data.stats);
+                updateRecentActivity(data.recentUsers, data.recentJobs);
+            }
         }
     } catch (error) {
-        console.error('Error loading stats:', error);
+        console.error('Error fetching stats:', error);
     }
 }
 
@@ -146,18 +143,19 @@ function updateRecentActivity() {
 // Load users
 async function loadUsers() {
     try {
-        const response = await fetch('/api/admin/users', {
+        const response = await fetch('/app/admin/users', {
             method: 'GET',
             credentials: 'include'
         });
         
         if (response.ok) {
             const data = await response.json();
-            adminData.users = data.users;
-            displayUsers();
+            if (data.success) {
+                displayUsers(data.users);
+            }
         }
     } catch (error) {
-        console.error('Error loading users:', error);
+        console.error('Error fetching users:', error);
     }
 }
 
@@ -203,18 +201,19 @@ function displayUsers() {
 // Load jobs
 async function loadJobs() {
     try {
-        const response = await fetch('/api/admin/jobs', {
+        const response = await fetch('/app/admin/jobs', {
             method: 'GET',
             credentials: 'include'
         });
         
         if (response.ok) {
             const data = await response.json();
-            adminData.jobs = data.jobs;
-            displayJobs();
+            if (data.success) {
+                displayJobs(data.jobs);
+            }
         }
     } catch (error) {
-        console.error('Error loading jobs:', error);
+        console.error('Error fetching jobs:', error);
     }
 }
 
@@ -264,18 +263,19 @@ function displayJobs() {
 // Load applications
 async function loadApplications() {
     try {
-        const response = await fetch('/api/admin/applications', {
+        const response = await fetch('/app/admin/applications', {
             method: 'GET',
             credentials: 'include'
         });
         
         if (response.ok) {
             const data = await response.json();
-            adminData.applications = data.applications;
-            displayApplications();
+            if (data.success) {
+                displayApplications(data.applications);
+            }
         }
     } catch (error) {
-        console.error('Error loading applications:', error);
+        console.error('Error fetching applications:', error);
     }
 }
 
@@ -326,12 +326,14 @@ async function deleteUser(userId) {
     }
     
     try {
-        const response = await fetch(`/api/admin/users/${userId}`, {
+        const response = await fetch(`/app/admin/users/${userId}`, {
             method: 'DELETE',
             credentials: 'include'
         });
         
-        if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success) {
             showNotification('User deleted successfully!', 'success');
             loadDashboardData(); // Reload all data
         } else {
@@ -349,12 +351,14 @@ async function deleteJob(jobId) {
     }
     
     try {
-        const response = await fetch(`/api/admin/jobs/${jobId}`, {
+        const response = await fetch(`/app/admin/jobs/${jobId}`, {
             method: 'DELETE',
             credentials: 'include'
         });
         
-        if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success) {
             showNotification('Job deleted successfully!', 'success');
             loadDashboardData(); // Reload all data
         } else {
@@ -396,7 +400,7 @@ function showTab(tabName) {
 // Logout
 async function logout() {
     try {
-        const response = await fetch('/api/admin/logout', {
+        const response = await fetch('/app/admin/logout', {
             method: 'POST',
             credentials: 'include'
         });

@@ -1,6 +1,14 @@
 // Load environment variables
 require('dotenv').config();
 
+// Debug: Log environment variables on startup
+console.log('Environment check:', {
+    ADMIN_USERNAME: process.env.ADMIN_USERNAME || 'Cristiano (fallback)',
+    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || 'Ronaldo (fallback)',
+    JWT_SECRET: process.env.JWT_SECRET || 'Utkarsh_12345 (fallback)',
+    MONGODB_URI: process.env.MONGODB_URI ? 'Set' : 'Using fallback'
+});
+
 //This is the entry point for the server.The backend server is being hosted from here
 const express=require('express')
 const jwt=require('jsonwebtoken')
@@ -114,7 +122,7 @@ app.get('/app/dashboard/freelancer',(req,res)=>
 })
 
 // Job API endpoints
-app.post('/api/jobs', authenticateToken, async (req, res) => {
+app.post('/app/jobs', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'client') {
             return res.status(403).json({ success: false, message: 'Only clients can post jobs' });
@@ -141,7 +149,7 @@ app.post('/api/jobs', authenticateToken, async (req, res) => {
     }
 });
 
-app.get('/api/jobs/client', authenticateToken, async (req, res) => {
+app.get('/app/jobs/client', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'client') {
             return res.status(403).json({ success: false, message: 'Access denied' });
@@ -155,7 +163,7 @@ app.get('/api/jobs/client', authenticateToken, async (req, res) => {
     }
 });
 
-app.get('/api/dashboard/stats', authenticateToken, async (req, res) => {
+app.get('/app/dashboard/stats', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'client') {
             return res.status(403).json({ success: false, message: 'Access denied' });
@@ -257,8 +265,18 @@ app.get('/app',(req,res)=>
     res.sendFile('index.html', { root: './public' })
 })
 
+// Debug route to check admin credentials
+app.get('/app/debug/admin', (req, res) => {
+    res.json({
+        expectedUsername: process.env.ADMIN_USERNAME || 'Cristiano',
+        expectedPassword: process.env.ADMIN_PASSWORD || 'Ronaldo',
+        envLoaded: !!process.env.ADMIN_USERNAME,
+        message: 'Use these credentials for admin login'
+    });
+});
+
 // Freelancer API endpoints
-app.get('/api/jobs/all', authenticateToken, async (req, res) => {
+app.get('/app/jobs/all', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'freelancer') {
             return res.status(403).json({ success: false, message: 'Access denied' });
@@ -275,7 +293,7 @@ app.get('/api/jobs/all', authenticateToken, async (req, res) => {
     }
 });
 
-app.post('/api/applications', authenticateToken, async (req, res) => {
+app.post('/app/applications', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'freelancer') {
             return res.status(403).json({ success: false, message: 'Only freelancers can apply for jobs' });
@@ -323,7 +341,7 @@ app.post('/api/applications', authenticateToken, async (req, res) => {
     }
 });
 
-app.get('/api/applications/freelancer', authenticateToken, async (req, res) => {
+app.get('/app/applications/freelancer', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'freelancer') {
             return res.status(403).json({ success: false, message: 'Access denied' });
@@ -343,7 +361,7 @@ app.get('/api/applications/freelancer', authenticateToken, async (req, res) => {
     }
 });
 
-app.get('/api/freelancer/stats', authenticateToken, async (req, res) => {
+app.get('/app/freelancer/stats', authenticateToken, async (req, res) => {
     try {
         if (req.user.role !== 'freelancer') {
             return res.status(403).json({ success: false, message: 'Access denied' });
@@ -381,11 +399,29 @@ app.get('/api/freelancer/stats', authenticateToken, async (req, res) => {
     }
 });
 
+// Get user information
+app.get('/app/user/profile', authenticateToken, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password');
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        res.json({ success: true, user });
+    } catch (err) {
+        console.error('Error fetching user profile:', err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
 // Admin authentication middleware
 const authenticateAdmin = (req, res, next) => {
     const { username, password } = req.body;
     
-    if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+    // Use fallback values if environment variables are not set
+    const expectedUsername = process.env.ADMIN_USERNAME || 'Cristiano';
+    const expectedPassword = process.env.ADMIN_PASSWORD || 'Ronaldo';
+    
+    if (username === expectedUsername && password === expectedPassword) {
         req.isAdmin = true;
         next();
     } else {
@@ -394,12 +430,25 @@ const authenticateAdmin = (req, res, next) => {
 };
 
 // Admin API endpoints
-app.post('/api/admin/login', async (req, res) => {
+app.post('/app/admin/login', async (req, res) => {
     const { username, password } = req.body;
     
-    if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+    // Debug: Log what we're comparing
+    console.log('Login attempt:', { 
+        providedUsername: username, 
+        providedPassword: password,
+        expectedUsername: process.env.ADMIN_USERNAME || 'Cristiano',
+        expectedPassword: process.env.ADMIN_PASSWORD || 'Ronaldo',
+        envLoaded: !!process.env.ADMIN_USERNAME
+    });
+    
+    // Use fallback values if environment variables are not set
+    const expectedUsername = process.env.ADMIN_USERNAME || 'Cristiano';
+    const expectedPassword = process.env.ADMIN_PASSWORD || 'Ronaldo';
+    
+    if (username === expectedUsername && password === expectedPassword) {
         const adminToken = jwt.sign({ 
-            username: process.env.ADMIN_USERNAME, 
+            username: expectedUsername, 
             role: 'admin' 
         }, secret_key, { expiresIn: '24h' });
         
@@ -442,7 +491,7 @@ app.get('/app/admin', (req, res) => {
 });
 
 // Admin API endpoints
-app.get('/api/admin/stats', verifyAdminToken, async (req, res) => {
+app.get('/app/admin/stats', verifyAdminToken, async (req, res) => {
     try {
         const totalUsers = await User.countDocuments();
         const totalJobs = await Job.countDocuments();
@@ -474,7 +523,7 @@ app.get('/api/admin/stats', verifyAdminToken, async (req, res) => {
     }
 });
 
-app.get('/api/admin/users', verifyAdminToken, async (req, res) => {
+app.get('/app/admin/users', verifyAdminToken, async (req, res) => {
     try {
         const users = await User.find().sort({ _id: -1 });
         res.json({ success: true, users });
@@ -484,7 +533,7 @@ app.get('/api/admin/users', verifyAdminToken, async (req, res) => {
     }
 });
 
-app.get('/api/admin/jobs', verifyAdminToken, async (req, res) => {
+app.get('/app/admin/jobs', verifyAdminToken, async (req, res) => {
     try {
         const jobs = await Job.find().populate('clientId', 'name').sort({ postedDate: -1 });
         res.json({ success: true, jobs });
@@ -494,7 +543,7 @@ app.get('/api/admin/jobs', verifyAdminToken, async (req, res) => {
     }
 });
 
-app.get('/api/admin/applications', verifyAdminToken, async (req, res) => {
+app.get('/app/admin/applications', verifyAdminToken, async (req, res) => {
     try {
         const applications = await Application.find()
             .populate('jobId', 'title')
@@ -507,7 +556,7 @@ app.get('/api/admin/applications', verifyAdminToken, async (req, res) => {
     }
 });
 
-app.delete('/api/admin/users/:userId', verifyAdminToken, async (req, res) => {
+app.delete('/app/admin/users/:userId', verifyAdminToken, async (req, res) => {
     try {
         const { userId } = req.params;
         
@@ -523,7 +572,7 @@ app.delete('/api/admin/users/:userId', verifyAdminToken, async (req, res) => {
     }
 });
 
-app.delete('/api/admin/jobs/:jobId', verifyAdminToken, async (req, res) => {
+app.delete('/app/admin/jobs/:jobId', verifyAdminToken, async (req, res) => {
     try {
         const { jobId } = req.params;
         
@@ -538,7 +587,7 @@ app.delete('/api/admin/jobs/:jobId', verifyAdminToken, async (req, res) => {
     }
 });
 
-app.patch('/api/admin/users/:userId/status', verifyAdminToken, async (req, res) => {
+app.patch('/app/admin/users/:userId/status', verifyAdminToken, async (req, res) => {
     try {
         const { userId } = req.params;
         const { status } = req.body; // 'active' or 'suspended'
@@ -551,7 +600,7 @@ app.patch('/api/admin/users/:userId/status', verifyAdminToken, async (req, res) 
     }
 });
 
-app.post('/api/admin/logout', verifyAdminToken, (req, res) => {
+app.post('/app/admin/logout', verifyAdminToken, (req, res) => {
     res.clearCookie('adminToken');
     res.json({ success: true, message: 'Admin logged out successfully' });
 });

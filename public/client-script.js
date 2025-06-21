@@ -11,6 +11,7 @@ let dashboardStats = {
 
 // Initialize dashboard on page load
 document.addEventListener('DOMContentLoaded', function() {
+    loadUserInfo();
     loadDashboardStats();
     loadJobs();
 });
@@ -18,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Load dashboard statistics
 async function loadDashboardStats() {
     try {
-        const response = await fetch('/api/dashboard/stats', {
+        const response = await fetch('/app/dashboard/stats', {
             method: 'GET',
             credentials: 'include'
         });
@@ -105,7 +106,7 @@ async function postJob(event) {
             skills: document.getElementById('job-skills').value
         };
         
-        const response = await fetch('/api/jobs', {
+        const response = await fetch('/app/jobs', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -150,7 +151,7 @@ async function loadJobs() {
         // Show loading state
         jobList.innerHTML = '<p>Loading jobs...</p>';
         
-        const response = await fetch('/api/jobs/client', {
+        const response = await fetch('/app/jobs/client', {
             method: 'GET',
             credentials: 'include'
         });
@@ -302,10 +303,6 @@ function declineApplication(jobId, freelancerName) {
     showNotification(`Application from ${freelancerName} declined for job ${jobId}`, 'info');
 }
 
-function messageFreelancer(freelancerName) {
-    showNotification(`Opening chat with ${freelancerName}`, 'info');
-}
-
 function viewApplicationsForJob(jobId) {
     showNotification(`Viewing applications for job ${jobId}`, 'info');
 }
@@ -320,29 +317,6 @@ function deleteJob(jobId) {
     }
 }
 
-function openChat(chatId) {
-    document.getElementById('current-chat').textContent = chatId === 'sarah-wilson' ? 'Sarah Wilson' : 'Mike Johnson';
-    // Add more chat functionality here
-}
-
-function sendMessage() {
-    const messageInput = document.getElementById('message-input');
-    const message = messageInput.value.trim();
-    
-    if (message) {
-        const messageSection = document.getElementById('message-section');
-        const newMessage = document.createElement('div');
-        newMessage.className = 'message sent';
-        newMessage.innerHTML = `
-            <div>${message}</div>
-            <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 5px;">${new Date().toLocaleTimeString()}</div>
-        `;
-        messageSection.appendChild(newMessage);
-        messageInput.value = '';
-        messageSection.scrollTop = messageSection.scrollHeight;
-    }
-}
-
 function viewContract(contractId) {
     showNotification(`Viewing contract ${contractId}`, 'info');
 }
@@ -353,4 +327,44 @@ function updateProgress(contractId) {
 
 function releasePayment(contractId) {
     showNotification(`Releasing payment for contract ${contractId}`, 'info');
+}
+
+// Load user information
+async function loadUserInfo() {
+    try {
+        const response = await fetch('/app/user/profile', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                updateUserDisplay(data.user);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading user info:', error);
+    }
+}
+
+// Update user display
+function updateUserDisplay(user) {
+    const userNameElement = document.getElementById('user-name');
+    const userAvatarElement = document.getElementById('user-avatar');
+    const userRoleElement = document.getElementById('user-role');
+    
+    if (userNameElement) {
+        userNameElement.textContent = user.name;
+    }
+    
+    if (userAvatarElement) {
+        // Create initials from user name
+        const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        userAvatarElement.textContent = initials;
+    }
+    
+    if (userRoleElement) {
+        userRoleElement.textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+    }
 }

@@ -84,15 +84,15 @@ Freelance-MarketPlace Platform<br>
 - `GET /app/dashboard/freelancer` - Freelancer dashboard (protected)
 
 ### Client Job Management
-- `POST /api/jobs` - Post a new job (client only)
-- `GET /api/jobs/client` - Get all jobs for the authenticated client
-- `GET /api/dashboard/stats` - Get client dashboard statistics
+- `POST /app/jobs` - Post a new job (client only)
+- `GET /app/jobs/client` - Get all jobs for the authenticated client
+- `GET /app/dashboard/stats` - Get client dashboard statistics
 
 ### Freelancer Job Management
-- `GET /api/jobs/all` - Get all active jobs (freelancer only)
-- `POST /api/applications` - Submit job application (freelancer only)
-- `GET /api/applications/freelancer` - Get freelancer's applications
-- `GET /api/freelancer/stats` - Get freelancer dashboard statistics
+- `GET /app/jobs/all` - Get all active jobs (freelancer only)
+- `POST /app/applications` - Submit job application (freelancer only)
+- `GET /app/applications/freelancer` - Get freelancer's applications
+- `GET /app/freelancer/stats` - Get freelancer dashboard statistics
 
 ## Setup Instructions
 
