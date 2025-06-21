@@ -96,20 +96,76 @@ Freelance-MarketPlace Platform<br>
 
 ## Setup Instructions
 
-1. **Install Dependencies**
+### 1. **Clone the Repository**
+   ```bash
+   git clone <your-repository-url>
+   cd Devsoc-Core-Project
+   ```
+
+### 2. **Install Dependencies**
    ```bash
    npm install
    ```
 
-2. **Start the Server**
+### 3. **Environment Configuration**
+   
+   **Create a `.env` file** in the root directory with the following variables:
+   
+   ```env
+   # Server Configuration
+   PORT=8000
+   NODE_ENV=development
+   
+   # JWT Secret Key (Replace with your own secret)
+   JWT_SECRET=your_jwt_secret_here
+   
+   # MongoDB Connection String (Replace with your own database)
+   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database_name
+   
+   # Admin Credentials (Replace with your own admin credentials)
+   ADMIN_USERNAME=your_admin_username
+   ADMIN_PASSWORD=your_admin_password
+   
+   # Cookie Settings
+   COOKIE_SECURE=false
+   COOKIE_SAMESITE=lax
+   ```
+
+   **Important Notes:**
+   - Replace `your_jwt_secret_here` with a strong, random string
+   - Replace the MongoDB URI with your own database connection string
+   - Set your own admin username and password
+   - The `.env` file is automatically ignored by Git for security
+
+### 4. **Database Setup**
+   - Create a MongoDB Atlas account (free tier available)
+   - Create a new cluster
+   - Get your connection string
+   - Replace the `MONGODB_URI` in your `.env` file
+
+### 5. **Start the Server**
    ```bash
    npm start
    ```
 
-3. **Access the Application**
+### 6. **Access the Application**
    - Main app: `http://localhost:8000/app`
    - Client dashboard: `http://localhost:8000/app/dashboard/client` (requires client login)
    - Freelancer dashboard: `http://localhost:8000/app/dashboard/freelancer` (requires freelancer login)
+   - Admin dashboard: `http://localhost:8000/app/admin` (use admin credentials from .env)
+
+## Environment Variables Explained
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `PORT` | Server port number | `8000` |
+| `NODE_ENV` | Environment mode | `development` or `production` |
+| `JWT_SECRET` | Secret key for JWT tokens | `my_super_secret_key_123` |
+| `MONGODB_URI` | MongoDB connection string | `mongodb+srv://user:pass@cluster.mongodb.net/db` |
+| `ADMIN_USERNAME` | Admin login username | `admin` |
+| `ADMIN_PASSWORD` | Admin login password | `secure_password` |
+| `COOKIE_SECURE` | Enable secure cookies (HTTPS) | `false` (for development) |
+| `COOKIE_SAMESITE` | Cookie same-site policy | `lax` |
 
 ## Current Status
 
