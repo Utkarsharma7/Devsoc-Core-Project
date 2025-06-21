@@ -1,10 +1,13 @@
+// Load environment variables
+require('dotenv').config();
+
 //This is the entry point for the server.The backend server is being hosted from here
 const express=require('express')
 const jwt=require('jsonwebtoken')
 const mongoose=require('mongoose')
 const bcrypt=require('bcrypt')
 const app=express()
-const secret_key="Utkarsh_12345"
+const secret_key=process.env.JWT_SECRET || "Utkarsh_12345"
 const cookieParser = require('cookie-parser');
 const path=require('path')
 //Middlewares
@@ -13,7 +16,7 @@ app.use(express.static('./public'))
 app.use(express.json())
 
 // Database connection
-mongoose.connect('mongodb+srv://utkarsh22sharma1:KBKpSyF5hfjAA1I9@cluster.qngupsq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster',{
+mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://utkarsh22sharma1:KBKpSyF5hfjAA1I9@cluster.qngupsq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster',{
     useNewUrlParser: true,
     useUnifiedTopology: true
  })
@@ -382,7 +385,7 @@ app.get('/api/freelancer/stats', authenticateToken, async (req, res) => {
 const authenticateAdmin = (req, res, next) => {
     const { username, password } = req.body;
     
-    if (username === 'Cristiano' && password === 'Ronaldo') {
+    if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
         req.isAdmin = true;
         next();
     } else {
@@ -394,16 +397,16 @@ const authenticateAdmin = (req, res, next) => {
 app.post('/api/admin/login', async (req, res) => {
     const { username, password } = req.body;
     
-    if (username === 'Cristiano' && password === 'Ronaldo') {
+    if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
         const adminToken = jwt.sign({ 
-            username: 'Cristiano', 
+            username: process.env.ADMIN_USERNAME, 
             role: 'admin' 
         }, secret_key, { expiresIn: '24h' });
         
         res.cookie('adminToken', adminToken, {
             httpOnly: true,
-            secure: false,
-            sameSite: 'lax',
+            secure: process.env.COOKIE_SECURE === 'true',
+            sameSite: process.env.COOKIE_SAMESITE || 'lax',
             maxAge: 24 * 60 * 60 * 1000 // 24 hours
         });
         
@@ -553,7 +556,12 @@ app.post('/api/admin/logout', verifyAdminToken, (req, res) => {
     res.json({ success: true, message: 'Admin logged out successfully' });
 });
 
-app.listen('8000',()=>
-{
-    console.log('Server is running on port 8000')
+// Catch-all middleware for unmatched routes
+app.use('/*t', (req, res) => {
+    res.status(404).json(`Cannot get the requested resource ${req.url}`);
+});
+
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 })

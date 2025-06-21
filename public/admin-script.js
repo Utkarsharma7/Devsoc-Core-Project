@@ -1,4 +1,4 @@
-// Admin Dashboard Script
+
 let adminData = {
     stats: {},
     users: [],
@@ -6,12 +6,11 @@ let adminData = {
     applications: []
 };
 
-// Check if admin is already logged in
+
 document.addEventListener('DOMContentLoaded', function() {
     checkAdminAuth();
 });
 
-// Check admin authentication
 async function checkAdminAuth() {
     try {
         const response = await fetch('/api/admin/stats', {
@@ -20,11 +19,10 @@ async function checkAdminAuth() {
         });
         
         if (response.ok) {
-            // Admin is logged in
+            
             showDashboard();
             loadDashboardData();
         } else {
-            // Admin not logged in
             showLoginForm();
         }
     } catch (error) {
