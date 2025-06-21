@@ -1,110 +1,115 @@
-// Sample data
-const jobs = [
-    {
-        id: 1,
-        title: "E-commerce Website Development",
-        description: "Need a modern e-commerce website with payment integration, user authentication, and admin panel.",
-        budget: 1200,
-        category: "web-dev",
-        tags: ["React", "Node.js", "MongoDB"],
-        client: "TechStore Inc.",
-        posted: "2 hours ago",
-        proposals: 12
-    },
-    {
-        id: 2,
-        title: "Mobile App UI/UX Design",
-        description: "Looking for a creative designer to create intuitive UI/UX for our fitness tracking mobile app.",
-        budget: 800,
-        category: "design",
-        tags: ["Figma", "UI/UX", "Mobile Design"],
-        client: "FitLife App",
-        posted: "5 hours ago",
-        proposals: 8
-    },
-    {
-        id: 3,
-        title: "Content Writing for Blog",
-        description: "Need 10 SEO-optimized blog posts about digital marketing trends and strategies.",
-        budget: 400,
-        category: "writing",
-        tags: ["SEO", "Content Writing", "Digital Marketing"],
-        client: "Marketing Pro",
-        posted: "1 day ago",
-        proposals: 15
-    },
-    {
-        id: 4,
-        title: "Python Data Analysis Script",
-        description: "Create a Python script to analyze sales data and generate automated reports with visualizations.",
-        budget: 600,
-        category: "web-dev",
-        tags: ["Python", "Data Analysis", "Pandas"],
-        client: "DataCorp",
-        posted: "3 hours ago",
-        proposals: 6
-    }
-];
+// Global variables to store data from API
+let jobs = [];
+let applications = [];
+let dashboardStats = {
+    totalApplications: 0,
+    pendingApplications: 0,
+    activeProjects: 0,
+    totalEarnings: 0
+};
 
-const applications = [
-    {
-        id: 1,
-        jobTitle: "E-commerce Website Development",
-        client: "TechStore Inc.",
-        appliedDate: "2024-06-15",
-        status: "pending",
-        budget: 1200,
-        proposal: 1150
-    },
-    {
-        id: 2,
-        jobTitle: "Mobile App Development",
-        client: "StartupXYZ",
-        appliedDate: "2024-06-12",
-        status: "accepted",
-        budget: 2000,
-        proposal: 1800
-    },
-    {
-        id: 3,
-        jobTitle: "Logo Design",
-        client: "BrandCo",
-        appliedDate: "2024-06-10",
-        status: "rejected",
-        budget: 300,
-        proposal: 250
-    }
-];
+let currentJobId = null;
 
-const projects = [
-    {
-        id: 1,
-        title: "Restaurant Management System",
-        client: "Tasty Bites",
-        progress: 75,
-        deadline: "2024-06-25",
-        budget: 1500,
-        status: "in-progress"
-    },
-    {
-        id: 2,
-        title: "Company Website Redesign",
-        client: "Corporate Solutions",
-        progress: 40,
-        deadline: "2024-07-10",
-        budget: 2200,
-        status: "in-progress"
-    },
-    {
-        id: 3,
-        title: "Inventory Management App",
-        client: "RetailHub",
-        progress: 90,
-        deadline: "2024-06-20",
-        budget: 1800,
-        status: "near-completion"
+// Initialize dashboard on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardStats();
+    loadJobs();
+    loadApplications();
+    setupEventListeners();
+});
+
+// Setup event listeners
+function setupEventListeners() {
+    // Search and filter functionality
+    document.getElementById('jobSearch').addEventListener('input', filterJobs);
+    document.getElementById('categoryFilter').addEventListener('change', filterJobs);
+    document.getElementById('budgetFilter').addEventListener('change', filterJobs);
+
+    // Application form submission
+    document.getElementById('applicationForm').addEventListener('submit', submitApplication);
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(e) {
+        const modal = document.getElementById('applicationModal');
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+}
+
+// Load dashboard statistics
+async function loadDashboardStats() {
+    try {
+        const response = await fetch('/api/freelancer/stats', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                dashboardStats = data.stats;
+                updateStatsDisplay();
+                updateRecentActivity();
+            } else {
+                console.error('Failed to load stats:', data.message);
+            }
+        } else if (response.status === 401) {
+            // Redirect to login if unauthorized
+            window.location.href = '/app';
+        }
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+        // Show fallback stats
+        updateStatsDisplay();
     }
-];
+}
+
+// Update stats display
+function updateStatsDisplay() {
+    const statCards = document.querySelectorAll('.stat-card .stat-number');
+    if (statCards.length >= 4) {
+        statCards[0].textContent = dashboardStats.totalApplications;
+        statCards[1].textContent = dashboardStats.pendingApplications;
+        statCards[2].textContent = dashboardStats.activeProjects;
+        statCards[3].textContent = `$${dashboardStats.totalEarnings.toLocaleString()}`;
+    }
+}
+
+// Update recent activity
+function updateRecentActivity() {
+    const recentActivity = document.getElementById('recent-activity');
+    
+    if (applications.length === 0) {
+        recentActivity.innerHTML = '<p>No recent activity. Start applying for jobs to see your activity here!</p>';
+        return;
+    }
+
+    // Show last 3 applications
+    const recentApplications = applications.slice(0, 3);
+    recentActivity.innerHTML = '';
+
+    recentApplications.forEach(app => {
+        const activityCard = document.createElement('div');
+        activityCard.className = 'job-card';
+        
+        const appliedDate = new Date(app.appliedDate).toLocaleDateString();
+        
+        activityCard.innerHTML = `
+            <div class="job-header">
+                <div>
+                    <div class="job-title">${app.jobId.title}</div>
+                    <div class="job-meta">
+                        <span>Applied: ${appliedDate}</span>
+                        <span>Your Bid: $${app.proposedBudget}</span>
+                    </div>
+                </div>
+                <div class="status status-${app.status}">${app.status.charAt(0).toUpperCase() + app.status.slice(1)}</div>
+            </div>
+        `;
+        recentActivity.appendChild(activityCard);
+    });
+}
 
 // Tab switching functionality
 function showTab(tabName, event) {
@@ -122,11 +127,44 @@ function showTab(tabName, event) {
     
     // Load data based on active tab
     if (tabName === 'jobs') {
-        displayJobs(jobs);
+        loadJobs();
     } else if (tabName === 'applications') {
-        displayApplications();
-    } else if (tabName === 'projects') {
-        displayProjects();
+        loadApplications();
+    } else if (tabName === 'dashboard') {
+        loadDashboardStats();
+    }
+}
+
+// Load jobs from API
+async function loadJobs() {
+    const jobsList = document.getElementById('jobsList');
+    
+    try {
+        // Show loading state
+        jobsList.innerHTML = '<p>Loading jobs...</p>';
+        
+        const response = await fetch('/api/jobs/all', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                jobs = data.jobs;
+                displayJobs(jobs);
+            } else {
+                jobsList.innerHTML = '<p>Error loading jobs: ' + data.message + '</p>';
+            }
+        } else if (response.status === 401) {
+            // Redirect to login if unauthorized
+            window.location.href = '/app';
+        } else {
+            jobsList.innerHTML = '<p>Error loading jobs. Please try again.</p>';
+        }
+    } catch (error) {
+        console.error('Error loading jobs:', error);
+        jobsList.innerHTML = '<p>Error loading jobs. Please check your connection.</p>';
     }
 }
 
@@ -135,27 +173,37 @@ function displayJobs(jobsToShow) {
     const jobsList = document.getElementById('jobsList');
     jobsList.innerHTML = '';
     
+    if (jobsToShow.length === 0) {
+        jobsList.innerHTML = '<p>No jobs available at the moment.</p>';
+        return;
+    }
+    
     jobsToShow.forEach(job => {
         const jobCard = document.createElement('div');
         jobCard.className = 'job-card';
+        
+        const postedDate = new Date(job.postedDate).toLocaleDateString();
+        const deadline = new Date(job.deadline).toLocaleDateString();
+        
         jobCard.innerHTML = `
             <div class="job-header">
                 <div>
                     <div class="job-title">${job.title}</div>
                     <div class="job-meta">
-                        <span>📅 Posted ${job.posted}</span>
-                        <span>👤 ${job.client}</span>
-                        <span>📊 ${job.proposals} proposals</span>
+                        <span>📅 Posted ${postedDate}</span>
+                        <span>👤 ${job.clientId.name}</span>
+                        <span>📊 ${job.applications} proposals</span>
+                        <span>⏰ Deadline: ${deadline}</span>
                     </div>
                 </div>
                 <div class="job-budget">$${job.budget}</div>
             </div>
             <p style="margin-bottom: 15px; color: #666; line-height: 1.5;">${job.description}</p>
             <div class="job-tags">
-                ${job.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                ${job.skills.map(skill => `<span class="tag">${skill}</span>`).join('')}
             </div>
             <div class="job-actions">
-                <button class="btn btn-primary" onclick="openApplicationModal(${job.id})">Apply Now</button>
+                <button class="btn btn-primary" onclick="openApplicationModal('${job._id}')">Apply Now</button>
                 <button class="btn btn-secondary">Save Job</button>
             </div>
         `;
@@ -163,85 +211,76 @@ function displayJobs(jobsToShow) {
     });
 }
 
+// Load applications from API
+async function loadApplications() {
+    const applicationsList = document.getElementById('applicationsList');
+    
+    try {
+        const response = await fetch('/api/applications/freelancer', {
+            method: 'GET',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+                applications = data.applications;
+                displayApplications();
+                updateRecentActivity();
+            } else {
+                applicationsList.innerHTML = '<p>Error loading applications: ' + data.message + '</p>';
+            }
+        } else if (response.status === 401) {
+            // Redirect to login if unauthorized
+            window.location.href = '/app';
+        } else {
+            applicationsList.innerHTML = '<p>Error loading applications. Please try again.</p>';
+        }
+    } catch (error) {
+        console.error('Error loading applications:', error);
+        applicationsList.innerHTML = '<p>Error loading applications. Please check your connection.</p>';
+    }
+}
+
 // Display applications
 function displayApplications() {
     const applicationsList = document.getElementById('applicationsList');
     applicationsList.innerHTML = '';
     
+    if (applications.length === 0) {
+        applicationsList.innerHTML = '<p>No applications yet. Start applying for jobs to see your applications here!</p>';
+        return;
+    }
+    
     applications.forEach(app => {
         const appCard = document.createElement('div');
         appCard.className = 'application-card';
+        
+        const appliedDate = new Date(app.appliedDate).toLocaleDateString();
+        
         appCard.innerHTML = `
             <div class="job-header">
                 <div>
-                    <div class="job-title">${app.jobTitle}</div>
+                    <div class="job-title">${app.jobId.title}</div>
                     <div class="job-meta">
-                        <span>Client: ${app.client}</span>
-                        <span>Applied: ${app.appliedDate}</span>
-                        <span>Your Bid: $${app.proposal}</span>
+                        <span>Client: ${app.jobId.clientId.name}</span>
+                        <span>Applied: ${appliedDate}</span>
+                        <span>Your Bid: $${app.proposedBudget}</span>
+                        <span>Timeline: ${app.estimatedTime}</span>
                     </div>
                 </div>
                 <span class="status status-${app.status}">${app.status.charAt(0).toUpperCase() + app.status.slice(1)}</span>
+            </div>
+            <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                <strong>Cover Letter:</strong>
+                <p style="margin-top: 5px; color: #666;">${app.coverLetter}</p>
             </div>
         `;
         applicationsList.appendChild(appCard);
     });
 }
 
-// Display projects
-function displayProjects() {
-    const projectsList = document.getElementById('projectsList');
-    projectsList.innerHTML = '';
-    
-    projects.forEach(project => {
-        const projectCard = document.createElement('div');
-        projectCard.className = 'application-card';
-        projectCard.innerHTML = `
-            <div class="job-header">
-                <div>
-                    <div class="job-title">${project.title}</div>
-                    <div class="job-meta">
-                        <span>Client: ${project.client}</span>
-                        <span>Deadline: ${project.deadline}</span>
-                        <span>Budget: $${project.budget}</span>
-                    </div>
-                </div>
-                <span class="status status-accepted">Active</span>
-            </div>
-            <div style="margin-top: 15px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <span>Progress</span>
-                    <span>${project.progress}%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${project.progress}%"></div>
-                </div>
-            </div>
-            <div class="job-actions">
-                <button class="btn btn-primary">View Details</button>
-                <button class="btn btn-secondary">Upload Work</button>
-            </div>
-        `;
-        projectsList.appendChild(projectCard);
-    });
-}
-
-// Modal functions
-function openApplicationModal(jobId) {
-    document.getElementById('applicationModal').style.display = 'block';
-    // You might want to store the jobId to use when the form is submitted
-    // For example: document.getElementById('applicationForm').dataset.jobId = jobId;
-}
-
-function closeModal() {
-    document.getElementById('applicationModal').style.display = 'none';
-}
-
 // Search and filter functionality
-document.getElementById('jobSearch').addEventListener('input', filterJobs);
-document.getElementById('categoryFilter').addEventListener('change', filterJobs);
-document.getElementById('budgetFilter').addEventListener('change', filterJobs);
-
 function filterJobs() {
     const searchTerm = document.getElementById('jobSearch').value.toLowerCase();
     const categoryFilter = document.getElementById('categoryFilter').value;
@@ -269,23 +308,134 @@ function filterJobs() {
     displayJobs(filteredJobs);
 }
 
-// Application form submission
-document.getElementById('applicationForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    alert('Application submitted successfully!');
-    closeModal();
-    // In a real application, you'd send this data to a backend
-});
+// Modal functions
+function openApplicationModal(jobId) {
+    currentJobId = jobId;
+    document.getElementById('applicationModal').style.display = 'block';
+    
+    // Reset form
+    document.getElementById('applicationForm').reset();
+}
 
-// Close modal when clicking outside
-window.addEventListener('click', function(e) {
-    const modal = document.getElementById('applicationModal');
-    if (e.target === modal) {
-        closeModal();
+function closeModal() {
+    document.getElementById('applicationModal').style.display = 'none';
+    currentJobId = null;
+}
+
+// Submit application
+async function submitApplication(event) {
+    event.preventDefault();
+    
+    if (!currentJobId) {
+        showNotification('Error: No job selected', 'error');
+        return;
     }
-});
+    
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    
+    try {
+        // Show loading state
+        submitButton.textContent = 'Submitting...';
+        submitButton.disabled = true;
+        
+        const formData = {
+            jobId: currentJobId,
+            coverLetter: document.getElementById('coverLetter').value,
+            proposedBudget: document.getElementById('proposedBudget').value,
+            estimatedTime: document.getElementById('estimatedTime').value
+        };
+        
+        const response = await fetch('/api/applications', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Reset form and close modal
+            event.target.reset();
+            closeModal();
+            
+            // Show success message
+            showNotification('Application submitted successfully!', 'success');
+            
+            // Reload data
+            await loadJobs();
+            await loadApplications();
+            await loadDashboardStats();
+        } else {
+            showNotification('Error submitting application: ' + data.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error submitting application:', error);
+        showNotification('Error submitting application. Please try again.', 'error');
+    } finally {
+        // Reset button state
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+    }
+}
 
-// Initialize the dashboard
-document.addEventListener('DOMContentLoaded', function() {
-    displayJobs(jobs); // Display jobs when the page first loads
-});
+// Show notification
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    
+    // Style the notification
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 5px;
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+        max-width: 300px;
+    `;
+    
+    // Set background color based on type
+    if (type === 'success') {
+        notification.style.backgroundColor = '#4CAF50';
+    } else if (type === 'error') {
+        notification.style.backgroundColor = '#f44336';
+    } else {
+        notification.style.backgroundColor = '#2196F3';
+    }
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Add CSS animations for notifications
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);

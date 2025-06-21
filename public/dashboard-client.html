@@ -21,19 +21,19 @@
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-number">12</div>
+                <div class="stat-number">0</div>
                 <div class="stat-label">Active Jobs</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">48</div>
+                <div class="stat-number">0</div>
                 <div class="stat-label">Applications</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">8</div>
+                <div class="stat-number">0</div>
                 <div class="stat-label">Active Contracts</div>
             </div>
             <div class="stat-card">
-                <div class="stat-number">$2,450</div>
+                <div class="stat-number">$0</div>
                 <div class="stat-label">Total Spent</div>
             </div>
         </div>
@@ -49,7 +49,7 @@
         <div id="post-job" class="tab-content active">
             <div class="card">
                 <h3>Post a New Job</h3>
-                <form class="job-form" onsubmit="postJob(event)">
+                <form class="job-form" id="job-form" onsubmit="postJob(event)">
                     <div class="form-group">
                         <label for="job-title">Job Title</label>
                         <input type="text" id="job-title" placeholder="e.g., Design a modern website" required>

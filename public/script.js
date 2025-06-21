@@ -28,39 +28,33 @@ window.onclick = function(event) {
 // Form handling
 document.addEventListener('DOMContentLoaded', function() {
     // Login form handler
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
         
         // Here you would normally send data to your backend
-        // Example API call structure using Axios:
+        // Example API call structure using async/await:
         
-        axios.post('/app/login', {
-            email: email,
-            password: password
-        })
-        .then(response => {
+        try {
+            const response = await axios.post('/app/login', {
+                email: email,
+                password: password
+            });
+            
             if (response.data.success) { 
                 // Redirect based on role
-                if (response.data.role === 'client') 
-                {
-                    window.location.href='/app/dashboard/client'
-                } 
-                if(response.data.role === 'freelancer')
-                {
-                   window.location.href='/app/dashboard/freelancer'
-                }
-            
-                else 
-                {
+                if (response.data.role === 'client') {
+                    window.location.href = '/app/dashboard/client';
+                } else if(response.data.role === 'freelancer') {
+                    window.location.href = '/app/dashboard/freelancer';
+                } else {
                     alert('Unknown role!');
                 }
             } else {
                 alert('Login failed: ' + response.data.message);
             }
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('Error:', error);
             if (error.response) {
                 // Server responded with error status
@@ -72,16 +66,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Something else happened
                 alert('Login failed. Please try again.');
             }
-        });
-        
+        }
         
         console.log('Login attempt:', { email, password });
-        alert('Login functionality will be connected to your backend!\nEmail: ' + email);
         closeModal('loginModal');
     });
 
     // Signup form handler
-    document.getElementById('signupForm').addEventListener('submit', function(e) {
+    document.getElementById('signupForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const name = document.getElementById('signupName').value;
         const email = document.getElementById('signupEmail').value;
@@ -95,24 +87,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Here you would normally send data to your backend
-        // Example API call structure using Axios:
+        // Example API call structure using async/await:
         
-        axios.post('/app/signup', {
-            name: name,
-            email: email,
-            password: password,
-            role: role
-        })
-        .then(response => {
+        try {
+            const response = await axios.post('/app/signup', {
+                name: name,
+                email: email,
+                password: password,
+                role: role
+            });
+            
             if (response.data.success) {
-                alert('Account created successfully! Please check your email for verification.');
+                alert('Account created successfully');
                 closeModal('signupModal');
                 openModal('loginModal');
             } else {
-                alert('Signup failed: ' + response.data.message);
+                if(response.data.message === 'User is already registered') {
+                    alert('User is already signed up');
+                } else {
+                    alert('Signup failed: Error on server side pls try again some time later');
+                }
             }
-        })
-        .catch(error => {
+        } catch (error) {
             console.error('Error:', error);
             if (error.response) {
                 // Server responded with error status
@@ -124,11 +120,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Something else happened
                 alert('Signup failed. Please try again.');
             }
-        });
+        }
         
         
         console.log('Signup attempt:', { name, email, password, role });
-        alert('Signup functionality will be connected to your backend!\nWelcome ' + name + '!\nRole: ' + role);
         closeModal('signupModal');
     });
 });
