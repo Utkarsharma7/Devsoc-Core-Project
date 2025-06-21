@@ -378,6 +378,181 @@ app.get('/api/freelancer/stats', authenticateToken, async (req, res) => {
     }
 });
 
+// Admin authentication middleware
+const authenticateAdmin = (req, res, next) => {
+    const { username, password } = req.body;
+    
+    if (username === 'Cristiano' && password === 'Ronaldo') {
+        req.isAdmin = true;
+        next();
+    } else {
+        res.status(401).json({ success: false, message: 'Invalid admin credentials' });
+    }
+};
+
+// Admin API endpoints
+app.post('/api/admin/login', async (req, res) => {
+    const { username, password } = req.body;
+    
+    if (username === 'Cristiano' && password === 'Ronaldo') {
+        const adminToken = jwt.sign({ 
+            username: 'Cristiano', 
+            role: 'admin' 
+        }, secret_key, { expiresIn: '24h' });
+        
+        res.cookie('adminToken', adminToken, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'lax',
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        });
+        
+        res.json({ success: true, message: 'Admin login successful' });
+    } else {
+        res.status(401).json({ success: false, message: 'Invalid admin credentials' });
+    }
+});
+
+// Verify admin token middleware
+const verifyAdminToken = (req, res, next) => {
+    const token = req.cookies.adminToken;
+    
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'No admin token provided' });
+    }
+    
+    try {
+        const decoded = jwt.verify(token, secret_key);
+        if (decoded.role !== 'admin') {
+            return res.status(403).json({ success: false, message: 'Admin access required' });
+        }
+        req.admin = decoded;
+        next();
+    } catch (err) {
+        return res.status(403).json({ success: false, message: 'Invalid admin token' });
+    }
+};
+
+// Admin dashboard route
+app.get('/app/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, '/public/admin-dashboard.html'));
+});
+
+// Admin API endpoints
+app.get('/api/admin/stats', verifyAdminToken, async (req, res) => {
+    try {
+        const totalUsers = await User.countDocuments();
+        const totalJobs = await Job.countDocuments();
+        const totalApplications = await Application.countDocuments();
+        const activeJobs = await Job.countDocuments({ status: 'active' });
+        const pendingApplications = await Application.countDocuments({ status: 'pending' });
+        
+        // Get recent users
+        const recentUsers = await User.find().sort({ _id: -1 }).limit(5);
+        
+        // Get recent jobs
+        const recentJobs = await Job.find().populate('clientId', 'name').sort({ postedDate: -1 }).limit(5);
+        
+        res.json({
+            success: true,
+            stats: {
+                totalUsers,
+                totalJobs,
+                totalApplications,
+                activeJobs,
+                pendingApplications
+            },
+            recentUsers,
+            recentJobs
+        });
+    } catch (err) {
+        console.error('Error fetching admin stats:', err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+app.get('/api/admin/users', verifyAdminToken, async (req, res) => {
+    try {
+        const users = await User.find().sort({ _id: -1 });
+        res.json({ success: true, users });
+    } catch (err) {
+        console.error('Error fetching users:', err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+app.get('/api/admin/jobs', verifyAdminToken, async (req, res) => {
+    try {
+        const jobs = await Job.find().populate('clientId', 'name').sort({ postedDate: -1 });
+        res.json({ success: true, jobs });
+    } catch (err) {
+        console.error('Error fetching jobs:', err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+app.get('/api/admin/applications', verifyAdminToken, async (req, res) => {
+    try {
+        const applications = await Application.find()
+            .populate('jobId', 'title')
+            .populate('freelancerId', 'name')
+            .sort({ appliedDate: -1 });
+        res.json({ success: true, applications });
+    } catch (err) {
+        console.error('Error fetching applications:', err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+app.delete('/api/admin/users/:userId', verifyAdminToken, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        // Delete user and all related data
+        await User.findByIdAndDelete(userId);
+        await Job.deleteMany({ clientId: userId });
+        await Application.deleteMany({ freelancerId: userId });
+        
+        res.json({ success: true, message: 'User deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting user:', err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+app.delete('/api/admin/jobs/:jobId', verifyAdminToken, async (req, res) => {
+    try {
+        const { jobId } = req.params;
+        
+        // Delete job and all related applications
+        await Job.findByIdAndDelete(jobId);
+        await Application.deleteMany({ jobId: jobId });
+        
+        res.json({ success: true, message: 'Job deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting job:', err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+app.patch('/api/admin/users/:userId/status', verifyAdminToken, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { status } = req.body; // 'active' or 'suspended'
+        
+        await User.findByIdAndUpdate(userId, { status });
+        res.json({ success: true, message: `User ${status} successfully` });
+    } catch (err) {
+        console.error('Error updating user status:', err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+app.post('/api/admin/logout', verifyAdminToken, (req, res) => {
+    res.clearCookie('adminToken');
+    res.json({ success: true, message: 'Admin logged out successfully' });
+});
+
 app.listen('8000',()=>
 {
     console.log('Server is running on port 8000')
